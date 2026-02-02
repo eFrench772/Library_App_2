@@ -1,4 +1,12 @@
-# temp-ktor
+
+## Quick Start
+
+```bash
+./gradlew run
+```
+
+Navigate to **http://localhost:8080/tasks**
+
 
 This project was created using the [Ktor Project Generator](https://start.ktor.io).
 
