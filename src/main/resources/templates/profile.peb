@@ -1,0 +1,17 @@
+{% extends "base.peb" %}
+
+{% block title %}Profile - Leeds Library{% endblock %}
+
+{% block content %}
+<h2>Your Profile</h2>
+{% if loggedIn %}
+    <a href="/logout"><b>Logout</b></a>
+{% else %}
+{% endif %}
+
+<article>
+    <p><strong>Username:</strong> {{ username }}</p>
+</article>
+
+<a href="/" role="button">Back to Search</a>
+{% endblock %}

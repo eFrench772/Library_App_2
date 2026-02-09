@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    {% block head %}{% endblock %}
+    <title>{% block title %}Leeds Library{% endblock %}</title>
+</head>
+<body>
+<main class="container">
+    <a href="/"><h1>Library</h1></a>
+    {% if loggedIn %}
+    <a href="/profile"><b>Profile</b></a>
+    {% else %}
+    <a href="/login"><b>Login</b></a>
+    {% endif %}
+    {% block content %}{% endblock %}
+</main>
+</body>
+</html>
