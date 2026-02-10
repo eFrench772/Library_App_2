@@ -1,0 +1,33 @@
+{% extends "base.peb" %}
+
+{% block title %}Profile - Leeds Library{% endblock %}
+
+{% block content %}
+<h1>All Books</h1>
+
+      <table>
+          <tr>
+              <th>Title</th>
+              <th>Author</th>
+              <th>ISBN</th>
+              <th>Format</th>
+              <th>Location</th>
+              <th>Notes</th>
+          </tr>
+          {% for book in books %}
+          <tr>
+              <td>{{ book.title }}</td>
+              <td>{{ book.author }}</td>
+              <td>{{ book.isbn13 }}</td>
+              <td>{{ book.formatCode }}</td>
+              <td>{{ book.locationCode }}</td>
+              <td>{{ book.notes }}</td>
+          </tr>
+          {% endfor %}
+      </table>
+      <p>Total: {{ books.size }} books</p>
+
+
+<a href="/" role="button">Back to Search</a>
+
+{% endblock %}

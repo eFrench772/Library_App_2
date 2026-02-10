@@ -85,5 +85,13 @@ fun Application.configureRouting() {
             UserState.username = ""
             call.respondRedirect("/")
         }
+        
+        get("/see-all-books") {
+            val books = getAllBooks()
+            call.respondTemplate("seeAllBooks.peb", mapOf(
+                "books" to books,
+                "loggedIn" to UserState.loggedIn
+            ))
+        }
     }
 }

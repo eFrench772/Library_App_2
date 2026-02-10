@@ -26,4 +26,13 @@ dependencies {
     implementation("io.ktor:ktor-server-pebble")
     testImplementation("io.ktor:ktor-server-test-host")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+
+
+
+    // Exposed database
+    implementation("org.jetbrains.exposed:exposed-core:0.56.0")
+    implementation("org.jetbrains.exposed:exposed-dao:0.56.0")
+    implementation("org.jetbrains.exposed:exposed-jdbc:0.56.0")
+    implementation("com.h2database:h2:2.2.224") 
+
 }

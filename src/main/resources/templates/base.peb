@@ -11,6 +11,7 @@
 <body>
 <main class="container">
     <a href="/"><h1>Library</h1></a>
+    <a href="/see-all-books">See All Books</a>
     {% if loggedIn %}
     <a href="/profile"><b>Profile</b></a>
     {% else %}
