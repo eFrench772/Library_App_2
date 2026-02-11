@@ -4,6 +4,7 @@
 
 {% block content %}
 <h1>All Books</h1>
+<p>Total: {{ books.size }} books</p>
 
       <table>
           <tr>
@@ -25,7 +26,7 @@
           </tr>
           {% endfor %}
       </table>
-      <p>Total: {{ books.size }} books</p>
+      
 
 
 <a href="/" role="button">Back to Search</a>
