@@ -19,12 +19,12 @@ object DatabaseFactory {
     }
 
     private fun parseCsvLine(line: String): List<String> {                                               
-      val parts = line.split(",")                                                                      
-      val trimmedParts = mutableListOf<String>()                                                       
+        val parts = line.split(",")                                                                      
+        val trimmedParts = mutableListOf<String>()                                                       
 
         for (part in parts) {                                                                            
-          val trimmed = part.trim()
-          trimmedParts.add(trimmed)                                                                    
+            val trimmed = part.trim()
+            trimmedParts.add(trimmed)                                                                    
         }                                                                              
         return trimmedParts
     }
@@ -43,7 +43,7 @@ object DatabaseFactory {
 
         val allLines: List<String> = csvFile.readLines()
         val linesWithoutHeader: MutableList<String> = mutableListOf()                                        
-                              
+                                
         // Skip the first line (header)
         for (i in 1 until allLines.size) {                                                                   
             linesWithoutHeader.add(allLines[i])
@@ -90,18 +90,18 @@ object DatabaseFactory {
         val bookCount = Books.selectAll().count()
         println("Loaded " + bookCount + " books from CSV")
             }
-}
-
-private fun seedUsers() = transaction {
-
-    // Insert into database
-    Users.insert {
-        it[username] = "JoeHill06"
-        it[email] = "JoeHill06@icloud.com"
-        it[passwordHash] = Password.hash("Hello").addRandomSalt(8).withScrypt().result
-        it[role] = false
     }
-    val userCount = Users.selectAll().count()
-    println("Loaded $userCount Users")
 
-}
+    private fun seedUsers() {
+
+        // Insert into database
+        Users.insert {
+            it[username] = "one"
+            it[email] = "one"
+            it[passwordHash] = Password.hash("one").addRandomSalt(8).withScrypt().result
+            it[role] = false
+        }
+        val userCount = Users.selectAll().count()
+        println("Loaded $userCount Users")
+    }
+

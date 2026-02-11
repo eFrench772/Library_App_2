@@ -14,7 +14,6 @@ object Books : Table() {
     override val primaryKey = PrimaryKey(id)
 }
 
-
 object Users : Table() {
     val id = integer("id").autoIncrement()
     val username = varchar("username", 255)

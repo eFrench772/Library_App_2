@@ -11,7 +11,9 @@
 
 <article>
     <p><strong>Username:</strong> {{ username }}</p>
+    <p><strong>Password:</strong> {{ password }}</p>
 </article>
 
 <a href="/" role="button">Back to Search</a>
+<a href="/remove-account" role="button">Remove account</a>
 {% endblock %}
