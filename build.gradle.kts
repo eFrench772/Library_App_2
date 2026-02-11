@@ -35,4 +35,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-jdbc:0.56.0")
     implementation("com.h2database:h2:2.2.224") 
 
+    //Hashing
+    implementation("com.password4j:password4j:1.8.4")
+
 }

@@ -5,6 +5,7 @@ import io.ktor.server.pebble.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import com.password4j.Password
 
 // Simple in-memory search state
 object SearchState {
@@ -56,10 +57,12 @@ fun Application.configureRouting() {
             val username = params["username"]
             val password = params["password"]
 
-            // Simple demo login (accepts any non-empty username/password)
-            if (!username.isNullOrBlank() && !password.isNullOrBlank()) {
+            val storedHash = getUserHashPassword(username.orEmpty())
+            val passwordMatches = Password.check(password, storedHash).withScrypt()
+
+            if (passwordMatches) {
                 UserState.loggedIn = true
-                UserState.username = username
+                UserState.username = username.orEmpty()
                 call.respondRedirect("/")
             } else {
                 call.respondTemplate("login.peb", mapOf(

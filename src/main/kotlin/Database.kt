@@ -3,6 +3,7 @@ package com.example.com
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.File
+import com.password4j.Password
 
 object DatabaseFactory {
     fun init() {
@@ -10,6 +11,10 @@ object DatabaseFactory {
         transaction {
             SchemaUtils.create(Books)
             seedBooks()
+        }
+        transaction {
+            SchemaUtils.create(Users)
+            seedUsers()
         }
     }
 
@@ -85,4 +90,18 @@ object DatabaseFactory {
         val bookCount = Books.selectAll().count()
         println("Loaded " + bookCount + " books from CSV")
             }
+}
+
+private fun seedUsers() = transaction {
+
+    // Insert into database
+    Users.insert {
+        it[username] = "JoeHill06"
+        it[email] = "JoeHill06@icloud.com"
+        it[passwordHash] = Password.hash("Hello").addRandomSalt(8).withScrypt().result
+        it[role] = false
+    }
+    val userCount = Users.selectAll().count()
+    println("Loaded $userCount Users")
+
 }
