@@ -12,19 +12,21 @@
 {% endif %}
 
 <form method="post" action="/search-title">
-    <label for="title">Book Title:</label>
-    <input type="text" id="title" name="title" required autofocus>
+    <label for="title">Enter: Title/Author/ISBN...</label>
+    <input type="text" id="usrInput" name="usrInput" required autofocus>
     <button type="submit">Search</button>
 </form>
 
 {% if results is not empty %}
 <h3>Results: {{ results | length }}</h3>
-<ul>
+<div class="results">
 {% for book in results %}
-    <li>{{ book }}</li>
+    <a href="/book/{{ book.id }}"><button type="button" class="book-btn">{{
+book.title }}</button></a>
 {% endfor %}
-</ul>
+</div>
 {% else %}
-<p>No results for this title!</p>
+<p>No results for this!</p>
 {% endif %}
+
 {% endblock %}
