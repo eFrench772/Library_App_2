@@ -10,7 +10,6 @@ import com.password4j.Password
 // Simple in-memory search state
 object SearchState {
     var message: String = ""
-    var results: List<String> = emptyList()
 }
 
 // Simple in-memory user state (for demo purposes)
@@ -25,25 +24,24 @@ fun Application.configureRouting() {
         get("/") {
             call.respondTemplate("search.peb", mapOf(
                 "message" to SearchState.message,
-                "results" to SearchState.results,
                 "loggedIn" to UserState.loggedIn
             ))
         }
 
         post("/search-title") {
             val params = call.receiveParameters()
-            val title = params["title"]
+            val usrInput = params["usrInput"]
 
-            if (!title.isNullOrBlank()) {
-                SearchState.message = "You searched for: $title"
-                // TODO: Add actual book search logic here
-                SearchState.results = emptyList()
+            if (!usrInput.isNullOrBlank()) {
+                val results = BookSearchAuthor(usrInput)
+                call.respondTemplate("search.peb", mapOf(
+                    "results" to results,
+                ))
+
             } else {
                 SearchState.message = "Please enter a title to search."
-                SearchState.results = emptyList()
+                call.respondRedirect("/")
             }
-
-            call.respondRedirect("/")
         }
 
         get("/login") {
@@ -95,7 +93,7 @@ fun Application.configureRouting() {
             val role = params["role"] == "true"
 
             val takenUsername = checkUsernameExists(username)
-            if (!takenUsername) {
+            if (!takenUsername && !username.isNullOrBlank() ) {
                 addUser(username, email, password, role)
                 call.respondRedirect("/login")
             } else {

@@ -32,6 +32,23 @@ fun getAllBooks(): List<Book> {
     }
 }
 
+fun BookSearchAuthor(Author: String): List<Book> {                          
+    return transaction {                                              
+        val bookList = Books.selectAll().where { Books.author eq Author}.map {                                
+            Book(                                                           
+                id = it[Books.id],
+                title = it[Books.title],                                    
+                author = it[Books.author],                
+                isbn13 = it[Books.isbn13],
+                formatCode = it[Books.formatCode],                          
+                locationCode = it[Books.locationCode],
+                notes = it[Books.notes]
+            )
+        }
+        bookList
+    }
+}
+
 
 //Users
 fun checkUsernameExists(username: String): Boolean {

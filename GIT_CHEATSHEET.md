@@ -93,6 +93,33 @@ gh pr view 123                          # View specific PR by number
 
 ---
 
+## GitHub Issues (using GitHub CLI)
+
+### View issues
+```bash
+gh issue list                           # List open issues
+gh issue view 42                        # View specific issue
+```
+
+### Create a branch linked to an issue
+```bash
+gh issue develop 42 --checkout          # Create branch linked to issue #42 and check it out
+```
+
+This will:
+- Create a new branch named after the issue (e.g., `42-issue-title`)
+- Check out the branch
+- Link the branch to the issue on GitHub
+
+### Alternative: Link manually when creating PR
+```bash
+git checkout -b feature/issue-42-description   # Create branch normally
+# ... make your changes ...
+gh pr create --issue 42                        # Link to issue when creating PR
+```
+
+---
+
 ## Keeping Your Branch Up to Date
 
 When teammates merge their code to main and you want it in your branch:
