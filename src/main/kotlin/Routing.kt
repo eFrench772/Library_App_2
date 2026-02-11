@@ -136,5 +136,13 @@ fun Application.configureRouting() {
             UserState.password = ""
             call.respondRedirect("/")
         }
+
+        get("/book/{isbn}") {
+            val isbn = call.parameters["isbn"]
+            val Books = BookSearchISBN(isbn ?: "")
+            call.respondTemplate("book.peb", mapOf(
+                "books" to Books
+            ))
+        }
     }
 }

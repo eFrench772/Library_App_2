@@ -1,0 +1,30 @@
+{% extends "base.peb" %}
+
+{% block title %}{{books[0].title}} by {{books[0].author}}{% endblock %}
+
+{% block content %}
+<h2>{{books[0].title}} by {{books[0].author}}</h2>
+<table>
+    <tr>
+        <th>Image</th>
+        <th>Title</th>
+        <th>Author</th>
+        <th>ISBN</th>
+        <th>Format</th>
+        <th>Location</th>
+        <th>Notes</th>
+    </tr>
+    {% for book in books %}
+    <tr>
+        <td><img src="https://covers.openlibrary.org/b/isbn/{{ book.isbn13}}-M.jpg"alt="Cover" onerror="this.src='/static/no-cover.png'"></td>
+        <td>{{ book.title }}</td>
+        <td>{{ book.author }}</td>
+        <td>{{ book.isbn13 }}</td>
+        <td>{{ book.formatCode }}</td>
+        <td>{{ book.locationCode }}</td>
+        <td>{{ book.notes }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}
