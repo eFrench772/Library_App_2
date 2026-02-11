@@ -5,6 +5,7 @@ import io.ktor.server.pebble.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import com.password4j.Password
 
 // Simple in-memory search state
 object SearchState {
@@ -16,6 +17,7 @@ object SearchState {
 object UserState {
     var loggedIn: Boolean = false
     var username: String = ""
+    var password: String = ""
 }
 
 fun Application.configureRouting() {
@@ -56,15 +58,49 @@ fun Application.configureRouting() {
             val username = params["username"]
             val password = params["password"]
 
-            // Simple demo login (accepts any non-empty username/password)
-            if (!username.isNullOrBlank() && !password.isNullOrBlank()) {
-                UserState.loggedIn = true
-                UserState.username = username
-                call.respondRedirect("/")
-            } else {
+            val storedHash = getUserHashPassword(username.orEmpty())
+
+            if (storedHash == null) {
                 call.respondTemplate("login.peb", mapOf(
                     "loggedIn" to false,
-                    "error" to "Please enter username and password."
+                    "error" to "Username not found."
+                ))
+            }else {
+                val passwordMatches = Password.check(password, storedHash).withScrypt()
+                if (passwordMatches) {
+                    UserState.loggedIn = true
+                    UserState.username = username.orEmpty()
+                    UserState.password = password.orEmpty()
+                    call.respondRedirect("/")
+                } else {
+                    call.respondTemplate("login.peb", mapOf(
+                        "loggedIn" to false,
+                        "error" to "Incorrect password."
+                    ))
+                }
+            }    
+        }
+
+        get("/register") {
+            call.respondTemplate("register.peb", mapOf(
+                "error" to ""
+            ))
+        }
+
+        post("/register") {
+            val params = call.receiveParameters()
+            val username = params["username"].orEmpty()
+            val email = params["email"].orEmpty()
+            val password = params["password"].orEmpty()
+            val role = params["role"] == "true"
+
+            val takenUsername = checkUsernameExists(username)
+            if (!takenUsername) {
+                addUser(username, email, password, role)
+                call.respondRedirect("/login")
+            } else {
+                call.respondTemplate("register.peb", mapOf(
+                    "error" to "This Username is taken."
                 ))
             }
         }
@@ -73,7 +109,8 @@ fun Application.configureRouting() {
             if (UserState.loggedIn) {
                 call.respondTemplate("profile.peb", mapOf(
                     "loggedIn" to UserState.loggedIn,
-                    "username" to UserState.username
+                    "username" to UserState.username,
+                    "password" to UserState.password
                 ))
             } else {
                 call.respondRedirect("/login")
@@ -92,6 +129,14 @@ fun Application.configureRouting() {
                 "books" to books,
                 "loggedIn" to UserState.loggedIn
             ))
+        }
+
+        get("/remove-account") {
+            removeUser(UserState.username)
+            UserState.loggedIn = false
+            UserState.username = ""
+            UserState.password = ""
+            call.respondRedirect("/")
         }
     }
 }
