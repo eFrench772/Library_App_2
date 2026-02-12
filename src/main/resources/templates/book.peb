@@ -1,30 +1,50 @@
-{% extends "base.peb" %}
+{% extends "base.peb" %}                                            
 
-{% block title %}{{books[0].title}} by {{books[0].author}}{% endblock %}
+{% block title %}{{ books[0].title }} by {{ books[0].author }}{%
+endblock %}                                                         
 
-{% block content %}
-<h2>{{books[0].title}} by {{books[0].author}}</h2>
-<table>
-    <tr>
-        <th>Image</th>
-        <th>Title</th>
-        <th>Author</th>
-        <th>ISBN</th>
-        <th>Format</th>
-        <th>Location</th>
-        <th>Notes</th>
-    </tr>
-    {% for book in books %}
-    <tr>
-        <td><img src="https://covers.openlibrary.org/b/isbn/{{ book.isbn13}}-M.jpg"alt="Cover" onerror="this.src='/static/no-cover.png'"></td>
-        <td>{{ book.title }}</td>
-        <td>{{ book.author }}</td>
-        <td>{{ book.isbn13 }}</td>
-        <td>{{ book.formatCode }}</td>
-        <td>{{ book.locationCode }}</td>
-        <td>{{ book.notes }}</td>
-    </tr>
-    {% endfor %}
-</table>
+{% block content %}                                                 
+<h2>{{ books[0].title }} by {{ books[0].author }}</h2>    
+
+<div class="book-details">                                          
+    <img src="https://covers.openlibrary.org/b/isbn/{{ books[0].isbn13 }}-M.jpg" alt="Cover" onerror="this.src='/static/no-cover.png'">
+
+    <table>
+        <tr>
+            <th>Title</th>
+            <td>{{ books[0].title }}</td>
+        </tr>
+        <tr>
+            <th>Author</th>
+            <td>{{ books[0].author }}</td>
+        </tr>
+        <tr>
+            <th>ISBN</th>
+            <td>{{ books[0].isbn13 }}</td>
+        </tr>
+        <tr>
+            <th>Format</th>
+            <td>{{ books[0].formatCode }}</td>
+        </tr>
+        <tr>
+            <th>Copies</th>
+            <td>{{ books | length }}</td>
+        </tr>
+        <tr>
+            <th>Locations</th>
+            <td>
+                <ul>
+                {% for book in books %}
+                    <li>{{ book.locationCode }}</li>
+                {% endfor %}
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <th>Notes</th>
+            <td>{{ books[0].notes }}</td>
+        </tr>
+    </table>
+</div>
 
 {% endblock %}
