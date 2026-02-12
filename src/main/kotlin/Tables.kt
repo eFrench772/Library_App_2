@@ -24,3 +24,13 @@ object Users : Table() {
     override val primaryKey = PrimaryKey(id)
 }
 
+object Loans : Table() {
+    val id = integer("id").autoIncrement()
+    val bookId = integer("book_id").references(Books.id)
+    val userId = integer("user_id").references(Users.id)
+    val loanDate = varchar("loan_date", 20)      // when they borrowed it
+    val dueDate = varchar("due_date", 20)        // when it's due back
+    val returned = bool("returned").default(false)
+
+    override val primaryKey = PrimaryKey(id)
+}

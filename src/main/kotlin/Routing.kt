@@ -7,6 +7,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import com.password4j.Password
+import java.time.LocalDate
 
 fun Application.configureRouting() {
     routing {
@@ -123,17 +124,42 @@ fun Application.configureRouting() {
 
         get("/book/{isbn}") {
             val isbn = call.parameters["isbn"]
-            val Books = BookSearchISBN(isbn ?: "")
-            
-            // use book ids for faster search up of if reserved or not 
-            val bookIds = mutableListOf<Int>()
-            for (book in Books) {
-                bookIds.add(book.id)
+            val books = BookSearchISBN(isbn ?: "")
+
+            val availability = mutableMapOf<Int, Boolean>()
+            for (book in books) {
+                availability[book.id] = checkAvailable(book.id)
             }
 
             call.respondTemplate("book.peb", getSessionData(call) + mapOf(
-                "books" to Books
+                "books" to books,
+                "availability" to availability
             ))
+        }
+
+        get("/bookReserve/{id}") {
+            val session = call.sessions.get<UserSession>()
+            val id = call.parameters["id"]?.toIntOrNull()
+
+            if (session == null || !session.loggedIn || id == null) {
+                call.respondRedirect("/login")
+                return@get
+            }
+
+            val book = BookSearchID(id)
+            if (book == null) {
+                call.respondRedirect("/")
+                return@get
+            }
+
+            val isAvailable = checkAvailable(book.id)
+            if (isAvailable) {
+                val loanDate = LocalDate.now().toString()
+                val dueDate = LocalDate.now().plusWeeks(2).toString()
+                loanBook(book.id, session.username, loanDate, dueDate)
+            }
+
+            call.respondRedirect("/book/${book.isbn13}")
         }
     }
 }

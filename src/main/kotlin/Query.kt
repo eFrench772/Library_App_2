@@ -100,6 +100,32 @@ fun BookSearchISBN(isbn: String): List<Book> {
     }
 }
 
+fun BookSearchID(id: Int): Book? {
+    val book = transaction {
+        val result = Books.selectAll()
+            .where { Books.id eq id }
+            .singleOrNull()
+
+        if (result == null) {
+            null
+        } else {
+            Book(
+                id = result[Books.id],
+                title = result[Books.title],
+                author = result[Books.author],
+                isbn13 = result[Books.isbn13],
+                formatCode = result[Books.formatCode],
+                locationCode = result[Books.locationCode],
+                notes = result[Books.notes]
+            )
+        }
+    }
+
+    return book
+}
+
+
+
 
 //Users
 fun checkUsernameExists(username: String): Boolean {
@@ -130,4 +156,90 @@ fun removeUser(username: String) {
     transaction {
         Users.deleteWhere { Users.username eq username }
     }
+}
+
+fun getUserIdByUsername(username: String): Int? {
+    return transaction {
+        val user = Users.selectAll()
+            .where { Users.username eq username }
+            .singleOrNull()
+
+        user?.get(Users.id)
+    }
+}
+
+//Loans
+data class Loan(
+    val id: Int,
+    val bookId: Int,
+    val userId: Int,
+    val loanDate: String,
+    val dueDate: String,
+    val returned: Boolean
+)
+
+fun checkAvailable(bookId: Int): Boolean {
+    val activeLoans = transaction {
+        Loans.selectAll()
+            .where { (Loans.bookId eq bookId) and (Loans.returned eq false) }
+            .count()
+    }
+
+    return activeLoans == 0L
+}
+
+fun loanBook(bookId: Int, username: String, loanDate: String, dueDate: String): Boolean {
+    val userId = getUserIdByUsername(username)
+    val isAvailable = checkAvailable(bookId)
+
+    if (userId == null || !isAvailable) {
+        return false
+    }
+
+    transaction {
+        Loans.insert {
+            it[Loans.bookId] = bookId
+            it[Loans.userId] = userId
+            it[Loans.loanDate] = loanDate
+            it[Loans.dueDate] = dueDate
+            it[Loans.returned] = false
+        }
+    }
+
+    return true
+}
+
+fun returnBook(loanId: Int): Boolean {
+    val updated = transaction {
+        Loans.update({ Loans.id eq loanId }) {
+            it[returned] = true
+        }
+    }
+
+    return updated > 0
+}
+
+fun getLoans(username: String): List<Loan> {
+    val userId = getUserIdByUsername(username)
+
+    if (userId == null) {
+        return emptyList()
+    }
+
+    val loans = transaction {
+        Loans.selectAll()
+            .where { Loans.userId eq userId }
+            .map {
+                Loan(
+                    id = it[Loans.id],
+                    bookId = it[Loans.bookId],
+                    userId = it[Loans.userId],
+                    loanDate = it[Loans.loanDate],
+                    dueDate = it[Loans.dueDate],
+                    returned = it[Loans.returned]
+                )
+            }
+    }
+
+    return loans
 }

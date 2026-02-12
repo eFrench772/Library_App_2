@@ -16,6 +16,9 @@ object DatabaseFactory {
             SchemaUtils.create(Users)
             seedUsers()
         }
+        transaction {
+            SchemaUtils.create(Loans)
+        }
     }
 
     private fun parseCsvLine(line: String): List<String> {                                               
