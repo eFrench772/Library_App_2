@@ -32,37 +32,71 @@ fun getAllBooks(): List<Book> {
     }
 }
 
-fun BookSearchAuthor(Author: String): List<Book> {                          
-    return transaction {                                              
-        val bookList = Books.selectAll().where { Books.author eq Author}.map {                                
-            Book(                                                           
-                id = it[Books.id],
-                title = it[Books.title],                                    
-                author = it[Books.author],                
-                isbn13 = it[Books.isbn13],
-                formatCode = it[Books.formatCode],                          
-                locationCode = it[Books.locationCode],
-                notes = it[Books.notes]
-            )
-        }
-        bookList
+fun BookSearch(query: String): List<Book> {
+    val trimmed = query.trim()
+    val isIsbn = trimmed.all { it.isDigit() } && (trimmed.length == 10 || trimmed.length == 13)
+
+    if (isIsbn) {
+        return BookSearchISBN(trimmed)
+    } else {
+        val titleResults = BookSearchTitle(trimmed)
+        val authorResults = BookSearchAuthor(trimmed)
+        return (titleResults + authorResults).distinctBy { it.id }
+
     }
 }
 
-fun BookSearchISBN(ISBN: String): List<Book> {                          
-    return transaction {                                              
-        val bookList = Books.selectAll().where { Books.isbn13 eq ISBN}.map {                                
-            Book(                                                           
-                id = it[Books.id],
-                title = it[Books.title],                                    
-                author = it[Books.author],                
-                isbn13 = it[Books.isbn13],
-                formatCode = it[Books.formatCode],                          
-                locationCode = it[Books.locationCode],
-                notes = it[Books.notes]
-            )
-        }
-        bookList
+fun BookSearchTitle(title: String): List<Book> {
+    return transaction {
+        Books.selectAll()
+            .where { Books.title.lowerCase() like "%${title.lowercase()}%" }
+            .map {
+                Book(
+                    id = it[Books.id],
+                    title = it[Books.title],
+                    author = it[Books.author],
+                    isbn13 = it[Books.isbn13],
+                    formatCode = it[Books.formatCode],
+                    locationCode = it[Books.locationCode],
+                    notes = it[Books.notes]
+                )
+            }
+    }
+}
+
+fun BookSearchAuthor(author: String): List<Book> {
+    return transaction {
+        Books.selectAll()
+            .where { Books.author.lowerCase() like "%${author.lowercase()}%" }
+            .map {
+                Book(
+                    id = it[Books.id],
+                    title = it[Books.title],
+                    author = it[Books.author],
+                    isbn13 = it[Books.isbn13],
+                    formatCode = it[Books.formatCode],
+                    locationCode = it[Books.locationCode],
+                    notes = it[Books.notes]
+                )
+            }
+    }
+}
+
+fun BookSearchISBN(isbn: String): List<Book> {
+    return transaction {
+        Books.selectAll()
+            .where { Books.isbn13 eq isbn }
+            .map {
+                Book(
+                    id = it[Books.id],
+                    title = it[Books.title],
+                    author = it[Books.author],
+                    isbn13 = it[Books.isbn13],
+                    formatCode = it[Books.formatCode],
+                    locationCode = it[Books.locationCode],
+                    notes = it[Books.notes]
+                )
+            }
     }
 }
 
