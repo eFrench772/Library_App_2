@@ -21,7 +21,8 @@
 <h3>Results: {{ results | length }}</h3>
 <div class="results">
 {% for book in results %}
-    <a href="/book/{{ book.id }}"><button type="button" class="book-btn">{{
+    <img src="https://covers.openlibrary.org/b/isbn/{{book.isbn13}}-S.jpg" />
+    <a href="/book/{{book.isbn13}}"><button type="button" class="book-btn">{{
 book.title }}</button></a>
 {% endfor %}
 </div>
