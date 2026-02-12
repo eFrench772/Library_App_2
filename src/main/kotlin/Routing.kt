@@ -33,7 +33,7 @@ fun Application.configureRouting() {
             val usrInput = params["usrInput"]
 
             if (!usrInput.isNullOrBlank()) {
-                val results = BookSearchAuthor(usrInput)
+                val results = BookSearch(usrInput)
                 call.respondTemplate("search.peb", mapOf(
                     "results" to results,
                 ))
@@ -143,7 +143,7 @@ fun Application.configureRouting() {
             
             // use book ids for faster search up of if reserved or not 
             val bookIds = mutableListOf<Int>()
-            for (book in books) {
+            for (book in Books) {
                 bookIds.add(book.id)
             }
 
