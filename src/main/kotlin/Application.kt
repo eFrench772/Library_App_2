@@ -10,4 +10,5 @@ fun Application.module() {
     DatabaseFactory.init()
     configureTemplates()
     configureRouting()
+    configureSessions()
 }
