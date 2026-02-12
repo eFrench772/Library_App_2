@@ -5,27 +5,18 @@ import io.ktor.server.pebble.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.sessions.*
 import com.password4j.Password
-
-// Simple in-memory search state
-object SearchState {
-    var message: String = ""
-}
-
-// Simple in-memory user state (for demo purposes)
-object UserState {
-    var loggedIn: Boolean = false
-    var username: String = ""
-    var password: String = ""
-}
 
 fun Application.configureRouting() {
     routing {
         get("/") {
-            call.respondTemplate("search.peb", mapOf(
-                "message" to SearchState.message,
-                "loggedIn" to UserState.loggedIn
-            ))
+            val session = call.sessions.get<UserSession>()
+            call.respondTemplate("search.peb", getSessionData(call))
+            // Clear message after displaying
+            if (session != null && session.message.isNotEmpty()) {
+                call.sessions.set(session.copy(message = ""))
+            }
         }
 
         post("/search-title") {
@@ -34,19 +25,18 @@ fun Application.configureRouting() {
 
             if (!usrInput.isNullOrBlank()) {
                 val results = BookSearch(usrInput)
-                call.respondTemplate("search.peb", mapOf(
-                    "results" to results,
+                call.respondTemplate("search.peb", getSessionData(call) + mapOf(
+                    "results" to results
                 ))
-
             } else {
-                SearchState.message = "Please enter a title to search."
+                val session = call.sessions.get<UserSession>() ?: UserSession()
+                call.sessions.set(session.copy(message = "Please enter a title to search."))
                 call.respondRedirect("/")
             }
         }
 
         get("/login") {
             call.respondTemplate("login.peb", mapOf(
-                "loggedIn" to UserState.loggedIn,
                 "error" to ""
             ))
         }
@@ -66,9 +56,7 @@ fun Application.configureRouting() {
             }else {
                 val passwordMatches = Password.check(password, storedHash).withScrypt()
                 if (passwordMatches) {
-                    UserState.loggedIn = true
-                    UserState.username = username.orEmpty()
-                    UserState.password = password.orEmpty()
+                    call.sessions.set(UserSession(username = username.orEmpty(), loggedIn = true))
                     call.respondRedirect("/")
                 } else {
                     call.respondTemplate("login.peb", mapOf(
@@ -104,36 +92,32 @@ fun Application.configureRouting() {
         }
 
         get("/profile") {
-            if (UserState.loggedIn) {
-                call.respondTemplate("profile.peb", mapOf(
-                    "loggedIn" to UserState.loggedIn,
-                    "username" to UserState.username,
-                    "password" to UserState.password
-                ))
+            val session = call.sessions.get<UserSession>()
+            if (session != null && session.loggedIn) {
+                call.respondTemplate("profile.peb", getSessionData(call))
             } else {
                 call.respondRedirect("/login")
             }
         }
 
         get("/logout") {
-            UserState.loggedIn = false
-            UserState.username = ""
+            call.sessions.clear<UserSession>()
             call.respondRedirect("/")
         }
         
         get("/see-all-books") {
             val books = getAllBooks()
-            call.respondTemplate("seeAllBooks.peb", mapOf(
-                "books" to books,
-                "loggedIn" to UserState.loggedIn
+            call.respondTemplate("seeAllBooks.peb", getSessionData(call) + mapOf(
+                "books" to books
             ))
         }
 
         get("/remove-account") {
-            removeUser(UserState.username)
-            UserState.loggedIn = false
-            UserState.username = ""
-            UserState.password = ""
+            val session = call.sessions.get<UserSession>()
+            if (session != null && session.loggedIn) {
+                removeUser(session.username)
+                call.sessions.clear<UserSession>()
+            }
             call.respondRedirect("/")
         }
 
@@ -147,8 +131,8 @@ fun Application.configureRouting() {
                 bookIds.add(book.id)
             }
 
-            call.respondTemplate("book.peb", mapOf(
-                "books" to Books,
+            call.respondTemplate("book.peb", getSessionData(call) + mapOf(
+                "books" to Books
             ))
         }
     }
