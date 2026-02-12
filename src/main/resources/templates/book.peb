@@ -27,15 +27,24 @@ endblock %}
             <td>{{ books[0].formatCode }}</td>
         </tr>
         <tr>
-            <th>Copies</th>
-            <td>{{ books | length }}</td>
-        </tr>
-        <tr>
-            <th>Locations</th>
+            <th>Copies ({{ books | length }})</th>
             <td>
                 <ul>
                 {% for book in books %}
-                    <li>{{ book.locationCode }}</li>
+                    <li>
+                        {{ book.locationCode }} -
+                        {% if availability[book.id] %}
+                            <span style="color: green;">Available</span>
+                            {% if loggedIn %}
+                                <a href="/bookReserve/{{book.id}}"><button type="button" class="book-btn">Reserve</button></a>
+                            {% endif %}
+                        {% else %}
+                            <span style="color: red;">Reserved</span>
+                            {% if loggedIn %}
+                                <button type="button" disabled style="opacity: 0.5;">Reserved</button>
+                            {% endif %}
+                        {% endif %}
+                    </li>
                 {% endfor %}
                 </ul>
             </td>
