@@ -36,16 +36,62 @@ If the server starts successfully, you'll see the following output:
 2024-12-04 14:32:45.682 [main] INFO  Application - Responding at http://0.0.0.0:8080
 ```
 
- A good morning routine:                                                                                                              
-                                                                                                                                       
-  # 1. Fetch everything from remote                                                                                                    
+## File Tree
+
+```
+Library_App_2/
+├── .DS_Store
+├── .gitignore
+├── GIT_CHEATSHEET.md
+├── README.md
+├── build.gradle.kts
+├── gradle.properties
+├── gradle/
+│   └── wrapper/
+│       ├── gradle-wrapper.jar
+│       └── gradle-wrapper.properties
+├── gradlew
+├── gradlew.bat
+├── library_booklist.csv
+├── settings.gradle.kts
+└── src/
+    ├── .DS_Store
+    └── main/
+        ├── .DS_Store
+        ├── kotlin/
+        │   ├── Application.kt
+        │   ├── Authentication.kt
+        │   ├── Database.kt
+        │   ├── Query.kt
+        │   ├── Routing.kt
+        │   ├── Tables.kt
+        │   ├── Templating.kt
+        │   └── UserSession.kt
+        └── resources/
+            ├── application.yaml
+            ├── logback.xml
+            ├── psw4j.properties
+            └── templates/
+                ├── base.peb
+                ├── book.peb
+                ├── login.peb
+                ├── profile.peb
+                ├── register.peb
+                ├── search.peb
+                └── seeAllBooks.peb
+```
+
+
+## Programing Routine
+
+### 1. Fetch everything from remote                                                                                                    
   git fetch origin                                                                                                                     
                                                                                                                                        
-  # 2. Update your local main                                                                                                          
+### 2. Update your local main                                                                                                          
   git checkout main                                                                                                                    
   git pull                                                                                                                             
                                                                                                                                        
-  # 3. Switch back to your branch and merge in latest main                                                                             
+### 3. Switch back to your branch and merge in latest main                                                                             
   git checkout Joe                                                                                                                     
   git merge main                                                                                                                       
                                                                                                                                        
@@ -59,4 +105,18 @@ If the server starts successfully, you'll see the following output:
   - git fetch downloads changes but doesn't modify your working code                                                                   
   - git pull = fetch + merge (only works for the branch you're currently on)                                                           
   - Merging main into your branch keeps you up to date and reduces merge conflicts later                                               
-                            
+
+
+notes:
+http://localhost:8082
+JDBC URL: jdbc:h2:file:./data/library;AUTO_SERVER=TRUE;
+User Name: (leave blank)
+Password: (leave blank)
+
+enter:
+SELECT * FROM USERS;
+run
+to see user data in table
+
+sets user to admin role
+UPDATE USERS SET "role" = TRUE WHERE USERNAME = 'test';

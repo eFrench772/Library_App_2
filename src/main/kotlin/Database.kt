@@ -7,13 +7,10 @@ import com.password4j.Password
 
 object DatabaseFactory {
     fun init() {
-        Database.connect("jdbc:h2:mem:library;DB_CLOSE_DELAY=-1;", driver = "org.h2.Driver")
+        Database.connect("jdbc:h2:file:./data/library;AUTO_SERVER=TRUE;", driver = "org.h2.Driver")
         transaction {
-            SchemaUtils.create(Books)
+            SchemaUtils.create(Books, Users, Loans, Reservations)
             seedBooks()
-        }
-        transaction {
-            SchemaUtils.create(Users)
             seedUsers()
         }
     }
@@ -93,6 +90,9 @@ object DatabaseFactory {
     }
 
     private fun seedUsers() {
+        if (Users.selectAll().count() > 0L) {
+            return
+        }
 
         // Insert into database
         Users.insert {
@@ -104,4 +104,3 @@ object DatabaseFactory {
         val userCount = Users.selectAll().count()
         println("Loaded $userCount Users")
     }
-

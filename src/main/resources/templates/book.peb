@@ -1,12 +1,11 @@
-{% extends "base.peb" %}                                            
+{% extends "base.peb" %}
 
-{% block title %}{{ books[0].title }} by {{ books[0].author }}{%
-endblock %}                                                         
+{% block title %}{{ books[0].title }} by {{ books[0].author }}{% endblock %}
 
-{% block content %}                                                 
-<h2>{{ books[0].title }} by {{ books[0].author }}</h2>    
+{% block content %}
+<h2>{{ books[0].title }} by {{ books[0].author }}</h2>
 
-<div class="book-details">                                          
+<div class="book-details">
     <img src="https://covers.openlibrary.org/b/isbn/{{ books[0].isbn13 }}-M.jpg" alt="Cover" onerror="this.src='/static/no-cover.png'">
 
     <table>
@@ -31,13 +30,34 @@ endblock %}
             <td>{{ books | length }}</td>
         </tr>
         <tr>
-            <th>Locations</th>
+            <th>Availability</th>
             <td>
                 <ul>
                 {% for book in books %}
-                    <li>{{ book.locationCode }}</li>
+                    <li>{{ book.locationCode }} —
+                        {% if book.isAvailable %}
+                            Available
+                            {% if loggedIn %}
+                            <form method="post" action="/borrow/{{ book.id }}">
+                                <button type="submit">Borrow</button>
+                            </form> 
+                            {% endif %}
+                        {% else %}
+                            Unavailable
+                            {% if isAdmin %}
+                            <form method="post" action="/admin/return/{{ book.id }}">
+                                <button type="submit">Mark as Returned</button>
+                            </form>
+                            {% endif %}
+                        {% endif %}
+                    </li>
                 {% endfor %}
                 </ul>
+                {% if loggedIn %}
+                <form method="post" action="/reserve/{{ books[0].id }}">
+                    <button type="submit">Reserve a Copy</button>
+                </form>
+                {% endif %}
             </td>
         </tr>
         <tr>

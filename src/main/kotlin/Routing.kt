@@ -78,11 +78,11 @@ fun Application.configureRouting() {
             val username = params["username"].orEmpty()
             val email = params["email"].orEmpty()
             val password = params["password"].orEmpty()
-            val role = params["role"] == "true"
+            val homeAddress = params["homeAddress"].orEmpty()
 
             val takenUsername = checkUsernameExists(username)
             if (!takenUsername && !username.isNullOrBlank() ) {
-                addUser(username, email, password, role)
+                addUser(username, email, password, homeAddress)
                 call.respondRedirect("/login")
             } else {
                 call.respondTemplate("register.peb", mapOf(
@@ -94,7 +94,8 @@ fun Application.configureRouting() {
         get("/profile") {
             val session = call.sessions.get<UserSession>()
             if (session != null && session.loggedIn) {
-                call.respondTemplate("profile.peb", getSessionData(call))
+                val loans = getUserLoans(session.username)
+                call.respondTemplate("profile.peb", getSessionData(call) + mapOf("loans" to loans))
             } else {
                 call.respondRedirect("/login")
             }
@@ -123,17 +124,72 @@ fun Application.configureRouting() {
 
         get("/book/{isbn}") {
             val isbn = call.parameters["isbn"]
-            val Books = BookSearchISBN(isbn ?: "")
-            
-            // use book ids for faster search up of if reserved or not 
-            val bookIds = mutableListOf<Int>()
-            for (book in Books) {
-                bookIds.add(book.id)
-            }
-
+            val books = BookSearchISBN(isbn ?: "")
             call.respondTemplate("book.peb", getSessionData(call) + mapOf(
-                "books" to Books
+                "books" to books,
+                "isAdmin" to isUserAdmin(call.sessions.get<UserSession>()?.username ?: "")
             ))
+        }
+
+        post("/borrow/{bookId}") {
+            val session = call.sessions.get<UserSession>()
+            if (session == null || !session.loggedIn) {
+                call.respondRedirect("/login")
+                return@post
+            }
+            val bookId = call.parameters["bookId"]?.toIntOrNull()
+            if (bookId != null) {
+                borrowBook(bookId, session.username)
+                call.sessions.set(session.copy(message = "Book borrowed successfully! Due in 2 weeks."))
+            }
+            call.respondRedirect("/")
+        }
+
+        post("/reserve/{bookId}") {
+            val session = call.sessions.get<UserSession>()
+            if (session == null || !session.loggedIn) {
+                call.respondRedirect("/login")
+                return@post
+        }
+            val bookId = call.parameters["bookId"]?.toIntOrNull()
+            if (bookId != null) {
+                reserveBook(bookId, session.username)
+                call.sessions.set(session.copy(message = "Book reserved successfully!"))
+            }
+            call.respondRedirect("/")
+        }
+
+        post("/return/{bookId}") {
+            val session = call.sessions.get<UserSession>()
+            if (session == null || !session.loggedIn) {
+                call.respondRedirect("/login")
+                return@post
+            }
+            val bookId = call.parameters["bookId"]?.toIntOrNull()
+            if (bookId != null) {
+                returnBook(bookId, session.username)
+                call.sessions.set(session.copy(message = "Book returned successfully!"))
+            }
+            call.respondRedirect("/profile")
+        }
+
+        post("/admin/return/{bookId}") {
+            val session = call.sessions.get<UserSession>()
+            if (session == null || !session.loggedIn) {
+                call.respondRedirect("/login")
+                return@post
+            }
+            if (!isUserAdmin(session.username)) {
+                call.respondRedirect("/")
+                return@post
+            }
+            val bookId = call.parameters["bookId"]?.toIntOrNull()
+            if (bookId != null) {
+                adminReturnBook(bookId)
+                call.sessions.set(session.copy(message = "Book marked as returned."))
+            }
+            call.respondRedirect("/")
         }
     }
 }
+
