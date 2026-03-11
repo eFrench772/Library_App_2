@@ -13,21 +13,64 @@
 
 <form method="post" action="/search-title">
     <label for="title">Enter: Title/Author/ISBN...</label>
-    <input type="text" id="usrInput" name="usrInput" required autofocus>
-    <button type="submit">Search</button>
+
+    <div role="group">
+        <input type="text" id="usrInput" name="usrInput" placeholder="Search..." required autofocus>
+        <button type="submit">Search</button>
+    </div>
 </form>
 
+<div id="results">
 {% if results is not empty %}
 <h3>Results: {{ results | length }}</h3>
 <div class="results">
 {% for book in results %}
     <img src="https://covers.openlibrary.org/b/isbn/{{book.isbn13}}-S.jpg" />
-    <a href="/book/{{book.isbn13}}"><button type="button" class="book-btn">{{
-book.title }}</button></a>
+    <a href="/book/{{book.isbn13}}">
+        <button type="button" class="book-btn">{{ book.title }}</button>
+    </a>
 {% endfor %}
 </div>
-{% else %}
-<p>No results for this!</p>
 {% endif %}
+</div>
+
+<script>
+const searchBox = document.getElementById("usrInput");
+const resultsDiv = document.getElementById("results");
+
+let debounceTimer;
+
+searchBox.addEventListener("input", function () {
+    clearTimeout(debounceTimer);
+
+    debounceTimer = setTimeout(async () => {
+        const query = searchBox.value;
+
+        if (query.length === 0) {
+            resultsDiv.innerHTML = "";
+            return;
+        }
+
+        const response = await fetch("/search-title", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: "usrInput=" + encodeURIComponent(query)
+        });
+
+        const html = await response.text();
+
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+        const newResults = doc.querySelector("#results");
+
+        if (newResults) {
+            resultsDiv.innerHTML = newResults.innerHTML;
+        }
+
+    }, 300); 
+});
+</script>
 
 {% endblock %}
