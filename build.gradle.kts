@@ -43,4 +43,8 @@ dependencies {
     implementation("io.ktor:ktor-server-sessions")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
+    //h2
+    implementation("com.h2database:h2:2.1.214")
+    implementation("org.jetbrains.exposed:exposed-java-time:0.41.1")
+
 }

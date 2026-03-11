@@ -13,7 +13,8 @@ data class Book(
     val isbn13: String?,
     val formatCode: String,
     val locationCode: String,
-    val notes: String?
+    val notes: String?,
+    val isAvailable: Boolean = true
 )
 
 fun getAllBooks(): List<Book> {
@@ -26,7 +27,8 @@ fun getAllBooks(): List<Book> {
                 isbn13 = it[Books.isbn13],
                 formatCode = it[Books.formatCode],
                 locationCode = it[Books.locationCode],
-                notes = it[Books.notes]
+                notes = it[Books.notes],
+                isAvailable = it[Books.isAvailable]
             )
         }
     }
@@ -42,7 +44,6 @@ fun BookSearch(query: String): List<Book> {
         val titleResults = BookSearchTitle(trimmed)
         val authorResults = BookSearchAuthor(trimmed)
         return (titleResults + authorResults).distinctBy { it.id }
-
     }
 }
 
@@ -58,7 +59,8 @@ fun BookSearchTitle(title: String): List<Book> {
                     isbn13 = it[Books.isbn13],
                     formatCode = it[Books.formatCode],
                     locationCode = it[Books.locationCode],
-                    notes = it[Books.notes]
+                    notes = it[Books.notes],
+                    isAvailable = it[Books.isAvailable]
                 )
             }
     }
@@ -76,7 +78,8 @@ fun BookSearchAuthor(author: String): List<Book> {
                     isbn13 = it[Books.isbn13],
                     formatCode = it[Books.formatCode],
                     locationCode = it[Books.locationCode],
-                    notes = it[Books.notes]
+                    notes = it[Books.notes],
+                    isAvailable = it[Books.isAvailable]
                 )
             }
     }
@@ -94,12 +97,12 @@ fun BookSearchISBN(isbn: String): List<Book> {
                     isbn13 = it[Books.isbn13],
                     formatCode = it[Books.formatCode],
                     locationCode = it[Books.locationCode],
-                    notes = it[Books.notes]
+                    notes = it[Books.notes],
+                    isAvailable = it[Books.isAvailable]
                 )
             }
     }
 }
-
 
 //Users
 fun checkUsernameExists(username: String): Boolean {
@@ -115,13 +118,14 @@ fun getUserHashPassword(username: String): String? {
     }
 }
 
-fun addUser(username: String, email: String, password: String, role: Boolean) {
+fun addUser(username: String, email: String, password: String, homeAddress: String) {
     transaction {
         Users.insert {
             it[Users.username] = username
             it[Users.email] = email
             it[Users.passwordHash] = Password.hash(password).addRandomSalt(8).withScrypt().result
-            it[Users.role] = role
+            it[Users.role] = false
+            it[Users.homeAddress] = homeAddress
         }
     }
 }
@@ -129,5 +133,96 @@ fun addUser(username: String, email: String, password: String, role: Boolean) {
 fun removeUser(username: String) {
     transaction {
         Users.deleteWhere { Users.username eq username }
+    }
+}
+
+fun getUserId(username: String): Int? {
+    return transaction {
+        Users.selectAll().where { Users.username eq username }
+            .singleOrNull()?.get(Users.id)
+    }
+}
+
+fun borrowBook(bookId: Int, username: String) {
+    val userId = getUserId(username) ?: return
+    transaction {
+        Books.update({ Books.id eq bookId }) {
+            it[isAvailable] = false
+        }
+        Loans.insert {
+            it[Loans.bookId] = bookId
+            it[Loans.userId] = userId
+            it[borrowedDate] = java.time.LocalDate.now()
+            it[dueDate] = java.time.LocalDate.now().plusWeeks(2)
+        }
+    }
+}
+
+fun reserveBook(bookId: Int, username: String) {
+    val userId = getUserId(username) ?: return
+    transaction {
+        Reservations.insert {
+            it[Reservations.bookId] = bookId
+            it[Reservations.userId] = userId
+            it[reservedDate] = java.time.LocalDate.now()
+        }
+    }
+}
+
+data class LoanDetails(
+    val bookId: Int,
+    val bookTitle: String,
+    val bookAuthor: String,
+    val borrowedDate: String,
+    val dueDate: String
+)
+
+fun getUserLoans(username: String): List<LoanDetails> {
+    val userId = getUserId(username) ?: return emptyList()
+    val formatter = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")
+    return transaction {
+        (Loans innerJoin Books)
+            .selectAll()
+            .where { (Loans.userId eq userId) and (Loans.returnedDate.isNull()) }
+            .map {
+                LoanDetails(
+                    bookId = it[Books.id],
+                    bookTitle = it[Books.title],
+                    bookAuthor = it[Books.author],
+                    borrowedDate = it[Loans.borrowedDate].format(formatter),
+                    dueDate = it[Loans.dueDate].format(formatter)
+                )
+            }
+    }
+}
+
+fun returnBook(bookId: Int, username: String) {
+    val userId = getUserId(username) ?: return
+    transaction {
+        Books.update({ Books.id eq bookId }) {
+            it[isAvailable] = true
+        }
+        Loans.update({ (Loans.bookId eq bookId) and (Loans.userId eq userId) and (Loans.returnedDate.isNull()) }) {
+            it[returnedDate] = java.time.LocalDate.now()
+        }
+    }
+}
+
+fun isUserAdmin(username: String): Boolean {
+    if (username.isEmpty()) return false
+    return transaction {
+        Users.selectAll().where { Users.username eq username }
+            .singleOrNull()?.get(Users.role) ?: false
+    }
+}
+
+fun adminReturnBook(bookId: Int) {
+    transaction {
+        Books.update({ Books.id eq bookId }) {
+            it[isAvailable] = true
+        }
+        Loans.update({ (Loans.bookId eq bookId) and (Loans.returnedDate.isNull()) }) {
+            it[returnedDate] = java.time.LocalDate.now()
+        }
     }
 }

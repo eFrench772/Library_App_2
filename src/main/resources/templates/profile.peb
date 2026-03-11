@@ -6,13 +6,44 @@
 <h2>Your Profile</h2>
 {% if loggedIn %}
     <a href="/logout"><b>Logout</b></a>
-{% else %}
 {% endif %}
 
 <article>
     <p><strong>Username:</strong> {{ username }}</p>
 </article>
 
+<h3>Currently Borrowed Books</h3>
+{% if loans is empty %}
+    <p>You have no books currently borrowed.</p>
+{% else %}
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Borrowed Date</th>
+                <th>Due Date</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for loan in loans %}
+            <tr>
+                <td>{{ loan.bookTitle }}</td>
+                <td>{{ loan.bookAuthor }}</td>
+                <td>{{ loan.borrowedDate }}</td>
+                <td>{{ loan.dueDate }}</td>
+                <td>
+                    <form method="post" action="/return/{{ loan.bookId }}">
+                        <button type="submit">Return</button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+
 <a href="/" role="button">Back to Search</a>
 <a href="/remove-account" role="button">Remove account</a>
+
 {% endblock %}

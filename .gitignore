@@ -34,3 +34,6 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### hides database from github ###
+data/library.mv.db
