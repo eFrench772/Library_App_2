@@ -158,11 +158,11 @@ fun borrowBook(bookId: Int, username: String) {
     }
 }
 
-fun reserveBook(bookId: Int, username: String) {
+fun reserveBook(isbn: String, username: String) {
     val userId = getUserId(username) ?: return
     transaction {
         Reservations.insert {
-            it[Reservations.bookId] = bookId
+            it[Reservations.isbn] = isbn
             it[Reservations.userId] = userId
             it[reservedDate] = java.time.LocalDate.now()
         }
@@ -199,11 +199,16 @@ fun getUserLoans(username: String): List<LoanDetails> {
 fun returnBook(bookId: Int, username: String) {
     val userId = getUserId(username) ?: return
     transaction {
-        Books.update({ Books.id eq bookId }) {
-            it[isAvailable] = true
-        }
         Loans.update({ (Loans.bookId eq bookId) and (Loans.userId eq userId) and (Loans.returnedDate.isNull()) }) {
             it[returnedDate] = java.time.LocalDate.now()
+        }
+    }
+    val isbn = transaction { Books.selectAll().where { Books.id eq bookId }.singleOrNull()?.get(Books.isbn13) }
+    if (!fulfillNextReservation(bookId, isbn)) {
+        transaction {
+            Books.update({ Books.id eq bookId }) {
+                it[isAvailable] = true
+            }
         }
     }
 }
@@ -218,11 +223,55 @@ fun isUserAdmin(username: String): Boolean {
 
 fun adminReturnBook(bookId: Int) {
     transaction {
-        Books.update({ Books.id eq bookId }) {
-            it[isAvailable] = true
-        }
         Loans.update({ (Loans.bookId eq bookId) and (Loans.returnedDate.isNull()) }) {
             it[returnedDate] = java.time.LocalDate.now()
         }
+    }
+    val isbn = transaction { Books.selectAll().where { Books.id eq bookId }.singleOrNull()?.get(Books.isbn13) }
+    if (!fulfillNextReservation(bookId, isbn)) {
+        transaction {
+            Books.update({ Books.id eq bookId }) {
+                it[isAvailable] = true
+            }
+        }
+    }
+}
+
+fun hasUserReservedIsbn(isbn: String, username: String): Boolean {
+    val userId = getUserId(username) ?: return false
+    return transaction {
+        Reservations.selectAll()
+            .where { (Reservations.isbn eq isbn) and (Reservations.userId eq userId) and (Reservations.fulfilledDate.isNull()) }
+            .count() > 0
+    }
+}
+
+fun fulfillNextReservation(bookId: Int, isbn: String?): Boolean {
+    if (isbn == null) return false
+    return transaction {
+        // find oldest unfulfilled reservation for this isbn
+        val reservation = Reservations.selectAll()
+            .where { (Reservations.isbn eq isbn) and (Reservations.fulfilledDate.isNull()) }
+            .orderBy(Reservations.reservedDate, SortOrder.ASC)
+            .firstOrNull() ?: return@transaction false
+
+        val userId = reservation[Reservations.userId]
+
+        // mark book as unavailable and create loan
+        Books.update({ Books.id eq bookId }) {
+            it[isAvailable] = false
+        }
+        Loans.insert {
+            it[Loans.bookId] = bookId
+            it[Loans.userId] = userId
+            it[borrowedDate] = java.time.LocalDate.now()
+            it[dueDate] = java.time.LocalDate.now().plusWeeks(2)
+        }
+
+        // mark reservation as fulfilled
+        Reservations.update({ Reservations.id eq reservation[Reservations.id] }) {
+            it[fulfilledDate] = java.time.LocalDate.now()
+        }
+        true
     }
 }

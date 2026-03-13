@@ -40,7 +40,7 @@ object Loans : Table() {
 
 object Reservations : Table() {
     val id = integer("id").autoIncrement()
-    val bookId = integer("book_id").references(Books.id)
+    val isbn = varchar("isbn", 20)
     val userId = integer("user_id").references(Users.id)
     val reservedDate = date("reserved_date")
     val fulfilledDate = date("fulfilled_date").nullable()

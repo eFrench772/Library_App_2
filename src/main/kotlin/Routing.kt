@@ -125,9 +125,13 @@ fun Application.configureRouting() {
         get("/book/{isbn}") {
             val isbn = call.parameters["isbn"]
             val books = BookSearchISBN(isbn ?: "")
+            val session = call.sessions.get<UserSession>()
+            val username = session?.username ?: ""
+            val alreadyReserved = if (username.isNotEmpty()) hasUserReservedIsbn(isbn ?: "", username) else false
             call.respondTemplate("book.peb", getSessionData(call) + mapOf(
                 "books" to books,
-                "isAdmin" to isUserAdmin(call.sessions.get<UserSession>()?.username ?: "")
+                "isAdmin" to isUserAdmin(username),
+                "alreadyReserved" to alreadyReserved
             ))
         }
 
@@ -145,17 +149,15 @@ fun Application.configureRouting() {
             call.respondRedirect("/")
         }
 
-        post("/reserve/{bookId}") {
+        post("/reserve/{isbn}") {
             val session = call.sessions.get<UserSession>()
-            if (session == null || !session.loggedIn) {
+                if (session == null || !session.loggedIn) {
                 call.respondRedirect("/login")
                 return@post
-        }
-            val bookId = call.parameters["bookId"]?.toIntOrNull()
-            if (bookId != null) {
-                reserveBook(bookId, session.username)
-                call.sessions.set(session.copy(message = "Book reserved successfully!"))
             }
+            val isbn = call.parameters["isbn"] ?: return@post
+            reserveBook(isbn, session.username)
+            call.sessions.set(session.copy(message = "Book reserved successfully!"))
             call.respondRedirect("/")
         }
 
