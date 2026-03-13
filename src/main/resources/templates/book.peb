@@ -54,9 +54,13 @@
                 {% endfor %}
                 </ul>
                 {% if loggedIn %}
-                <form method="post" action="/reserve/{{ books[0].id }}">
-                    <button type="submit">Reserve a Copy</button>
-                </form>
+                    {% if alreadyReserved %}
+                        <button disabled>Already Reserved</button>
+                    {% else %}
+                    <form method="post" action="/reserve/{{ books[0].isbn13 }}">
+                        <button type="submit">Reserve a Copy</button>
+                    </form>
+                    {% endif %}
                 {% endif %}
             </td>
         </tr>
