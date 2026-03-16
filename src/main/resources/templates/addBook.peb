@@ -1,0 +1,38 @@
+{% extends "base.peb" %}
+
+{% block title %}Add Book - Leeds Library{% endblock %}
+
+{% block content %}
+<h2>Add New Book</h2>
+
+{% if error is not empty %}
+<article>
+    <p><strong>{{ error }}</strong></p>
+</article>
+{% endif %}
+
+<form method="post" action="/admin/add-book">
+    <label for="title">Title:</label>
+    <input type="text" id="title" name="title" required>
+
+    <label for="author">Author:</label>
+    <input type="text" id="author" name="author" required>
+
+    <label for="isbn13">ISBN:</label>
+    <input type="text" id="isbn13" name="isbn13">
+
+    <label for="formatCode">Format Code:</label>
+    <input type="text" id="formatCode" name="formatCode" required>
+
+    <label for="locationCode">Location Code:</label>
+    <input type="text" id="locationCode" name="locationCode" required>
+
+    <label for="notes">Notes:</label>
+    <input type="text" id="notes" name="notes">
+
+    <button type="submit">Add Book</button>
+</form>
+
+<a href="/see-all-books" role="button">Cancel</a>
+
+{% endblock %}

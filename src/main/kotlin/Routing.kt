@@ -108,8 +108,11 @@ fun Application.configureRouting() {
         
         get("/see-all-books") {
             val books = getAllBooks()
+            val session = call.sessions.get<UserSession>()
+            val username = session?.username ?: ""
             call.respondTemplate("seeAllBooks.peb", getSessionData(call) + mapOf(
-                "books" to books
+                "books" to books,
+                "isAdmin" to isUserAdmin(username)
             ))
         }
 
@@ -191,6 +194,46 @@ fun Application.configureRouting() {
                 call.sessions.set(session.copy(message = "Book marked as returned."))
             }
             call.respondRedirect("/")
+        }
+
+        get("/admin/add-book") {
+            val session = call.sessions.get<UserSession>()
+            if (!isUserAdmin(session?.username ?: "")) {
+                call.respondRedirect("/")
+                return@get
+            }
+            call.respondTemplate("addBook.peb", getSessionData(call) + mapOf("error" to ""))
+        }
+
+        post("/admin/add-book") {
+        val session = call.sessions.get<UserSession>()
+            if (!isUserAdmin(session?.username ?: "")) {
+                call.respondRedirect("/")
+                return@post
+            }
+            val params = call.receiveParameters()
+            addBook(
+                title = params["title"].orEmpty(),
+                author = params["author"].orEmpty(),
+                isbn13 = params["isbn13"].orEmpty().ifEmpty { null },
+                formatCode = params["formatCode"].orEmpty(),
+                locationCode = params["locationCode"].orEmpty(),
+                notes = params["notes"].orEmpty().ifEmpty { null }
+            )
+            call.respondRedirect("/see-all-books")
+        }
+
+        post("/admin/remove-book/{bookId}") {
+        val session = call.sessions.get<UserSession>()
+            if (!isUserAdmin(session?.username ?: "")) {
+                call.respondRedirect("/")
+                return@post
+            }
+            val bookId = call.parameters["bookId"]?.toIntOrNull()
+            if (bookId != null) {
+                removeBook(bookId)
+            }
+            call.respondRedirect("/see-all-books")
         }
     }
 }

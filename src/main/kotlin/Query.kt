@@ -275,3 +275,23 @@ fun fulfillNextReservation(bookId: Int, isbn: String?): Boolean {
         true
     }
 }
+
+fun addBook(title: String, author: String, isbn13: String?, formatCode: String, locationCode: String, notes: String?) {
+    transaction {
+        Books.insert {
+            it[Books.title] = title
+            it[Books.author] = author
+            it[Books.isbn13] = isbn13
+            it[Books.formatCode] = formatCode
+            it[Books.locationCode] = locationCode
+            it[Books.notes] = notes
+            it[Books.isAvailable] = true
+        }
+    }
+}
+
+fun removeBook(bookId: Int) {
+    transaction {
+        Books.deleteWhere { Books.id eq bookId }
+    }
+}

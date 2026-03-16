@@ -1,33 +1,43 @@
 {% extends "base.peb" %}
 
-{% block title %}Profile - Leeds Library{% endblock %}
+{% block title %}All Books - Leeds Library{% endblock %}
 
 {% block content %}
 <h1>All Books</h1>
 <p>Total: {{ books.size }} books</p>
 
-      <table>
-          <tr>
-              <th>Title</th>
-              <th>Author</th>
-              <th>ISBN</th>
-              <th>Format</th>
-              <th>Location</th>
-              <th>Notes</th>
-          </tr>
-          {% for book in books %}
-          <tr>
-              <td>{{ book.title }}</td>
-              <td>{{ book.author }}</td>
-              <td>{{ book.isbn13 }}</td>
-              <td>{{ book.formatCode }}</td>
-              <td>{{ book.locationCode }}</td>
-              <td>{{ book.notes }}</td>
-          </tr>
-          {% endfor %}
-      </table>
-      
+{% if isAdmin %}
+    <a href="/admin/add-book" role="button">Add Book</a>
+{% endif %}
 
+<table>
+    <tr>
+        <th>Title</th>
+        <th>Author</th>
+        <th>ISBN</th>
+        <th>Format</th>
+        <th>Location</th>
+        <th>Notes</th>
+        {% if isAdmin %}<th>Actions</th>{% endif %}
+    </tr>
+    {% for book in books %}
+    <tr>
+        <td>{{ book.title }}</td>
+        <td>{{ book.author }}</td>
+        <td>{{ book.isbn13 }}</td>
+        <td>{{ book.formatCode }}</td>
+        <td>{{ book.locationCode }}</td>
+        <td>{{ book.notes }}</td>
+        {% if isAdmin %}
+        <td>
+            <form method="post" action="/admin/remove-book/{{ book.id }}">
+                <button type="submit">Remove</button>
+            </form>
+        </td>
+        {% endif %}
+    </tr>
+    {% endfor %}
+</table>
 
 <a href="/" role="button">Back to Search</a>
 
