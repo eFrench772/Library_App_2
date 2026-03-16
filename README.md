@@ -1,3 +1,9 @@
+# Library Web App
+### COMP2850 Miniproject
+
+A web-based library management system built with Kotlin and Ktor.
+
+---
 
 ## Quick Start
 
@@ -5,118 +11,122 @@
 ./gradlew run
 ```
 
-Website **http://localhost:8080**
+Then open **http://localhost:8080** in your browser.
+
+---
 
 ## Features
 
-Here's a list of features included in this project:
+- **Book Search** — Search by title, author, or ISBN. Anyone can search without an account.
+- **Book Details** — View cover image, format, location, availability per copy, and notes.
+- **User Accounts** — Register with username, email, password, and home address.
+- **Borrow & Return** — Logged-in users can borrow available copies and return them via their profile.
+- **Reservations** — Users can reserve unavailable books. When a copy is returned, it is automatically assigned to the next user in the queue.
+- **User Profile** — View currently borrowed books, due dates, and return books directly.
+- **Admin Controls** — Admin users can add, remove, and mark books as returned from the UI. Admin role is assigned via the H2 console.
 
-| Name                                               | Description                                                 |
-| ----------------------------------------------------|------------------------------------------------------------- |
-| [Routing](https://start.ktor.io/p/routing-default) | Allows to define structured routes and associated handlers. |
+---
 
-## Building & Running
+## Tech Stack
 
-To build or run the project, use one of the following tasks:
+| Layer | Technology |
+|---|---|
+| Language | Kotlin |
+| Framework | Ktor (Netty) |
+| Database | H2 (file-based, persistent) |
+| ORM | Exposed |
+| Templating | Pebble |
+| Password Hashing | Password4j (Scrypt) |
+| CSS | Pico CSS |
 
-| Task                                    | Description                                                          |
-| -----------------------------------------|---------------------------------------------------------------------- |
-| `./gradlew test`                        | Run the tests                                                        |
-| `./gradlew build`                       | Build everything                                                     |
-| `./gradlew buildFatJar`                 | Build an executable JAR of the server with all dependencies included |
-| `./gradlew buildImage`                  | Build the docker image to use with the fat JAR                       |
-| `./gradlew publishImageToLocalRegistry` | Publish the docker image locally                                     |
-| `./gradlew run`                         | Run the server                                                       |
-| `./gradlew runDocker`                   | Run using the local docker image                                     |
+---
 
-If the server starts successfully, you'll see the following output:
-
-```
-2024-12-04 14:32:45.584 [main] INFO  Application - Application started in 0.303 seconds.
-2024-12-04 14:32:45.682 [main] INFO  Application - Responding at http://0.0.0.0:8080
-```
-
-## File Tree
+## Project Structure
 
 ```
 Library_App_2/
-├── .DS_Store
-├── .gitignore
-├── GIT_CHEATSHEET.md
-├── README.md
+├── library_booklist.csv        # Seed data for books
 ├── build.gradle.kts
-├── gradle.properties
-├── gradle/
-│   └── wrapper/
-│       ├── gradle-wrapper.jar
-│       └── gradle-wrapper.properties
-├── gradlew
-├── gradlew.bat
-├── library_booklist.csv
-├── settings.gradle.kts
-└── src/
-    ├── .DS_Store
-    └── main/
-        ├── .DS_Store
-        ├── kotlin/
-        │   ├── Application.kt
-        │   ├── Authentication.kt
-        │   ├── Database.kt
-        │   ├── Query.kt
-        │   ├── Routing.kt
-        │   ├── Tables.kt
-        │   ├── Templating.kt
-        │   └── UserSession.kt
-        └── resources/
-            ├── application.yaml
-            ├── logback.xml
-            ├── psw4j.properties
-            └── templates/
-                ├── base.peb
-                ├── book.peb
-                ├── login.peb
-                ├── profile.peb
-                ├── register.peb
-                ├── search.peb
-                └── seeAllBooks.peb
+└── src/main/
+    ├── kotlin/
+    │   ├── Application.kt      # App entry point, module setup
+    │   ├── Authentication.kt   # Auth helpers
+    │   ├── Database.kt         # DB init and seeding
+    │   ├── Query.kt            # All database query functions
+    │   ├── Routing.kt          # All routes (GET/POST handlers)
+    │   ├── Tables.kt           # Exposed table definitions
+    │   ├── Templating.kt       # Pebble config
+    │   └── UserSession.kt      # Session data class
+    └── resources/
+        ├── application.yaml    # Server config (port etc.)
+        └── templates/          # Pebble HTML templates
+            ├── base.peb
+            ├── search.peb
+            ├── book.peb
+            ├── seeAllBooks.peb
+            ├── addBook.peb
+            ├── login.peb
+            ├── register.peb
+            └── profile.peb
 ```
 
+---
 
-## Programing Routine
+## Database
 
-### 1. Fetch everything from remote                                                                                                    
-  git fetch origin                                                                                                                     
-                                                                                                                                       
-### 2. Update your local main                                                                                                          
-  git checkout main                                                                                                                    
-  git pull                                                                                                                             
-                                                                                                                                       
-### 3. Switch back to your branch and merge in latest main                                                                             
-  git checkout Joe                                                                                                                     
-  git merge main                                                                                                                       
-                                                                                                                                       
-  Or the shortcut (without switching branches):                                                                                        
-                                                                                                                                       
-  git fetch origin main:main                                                                                                           
-  git merge main                                                                                                                       
-                                                                                                                                       
-  Key points:                                                                                                                          
-                                                                                                                                       
-  - git fetch downloads changes but doesn't modify your working code                                                                   
-  - git pull = fetch + merge (only works for the branch you're currently on)                                                           
-  - Merging main into your branch keeps you up to date and reduces merge conflicts later                                               
+The app uses an H2 file-based database stored at `./data/library.mv.db`. Data persists between restarts.
 
+**Tables:** `BOOKS`, `USERS`, `LOANS`, `RESERVATIONS`
 
-notes:
-http://localhost:8082
-JDBC URL: jdbc:h2:file:./data/library;AUTO_SERVER=TRUE;
-User Name: (leave blank)
-Password: (leave blank)
+To inspect the database, use the H2 console:
 
-enter:
+1. Run the app
+2. Go to **http://localhost:8082**
+3. Connect with:
+   - **JDBC URL:** `jdbc:h2:file:./data/library;AUTO_SERVER=TRUE;`
+   - **User Name:** *(leave blank)*
+   - **Password:** *(leave blank)*
+
+### Useful SQL
+
+```sql
+-- View all users
 SELECT * FROM USERS;
-run
-to see user data in table
 
-sets user to admin role
-UPDATE USERS SET "role" = TRUE WHERE USERNAME = 'test';
+-- View all active loans
+SELECT * FROM LOANS WHERE RETURNED_DATE IS NULL;
+
+-- View all reservations
+SELECT * FROM RESERVATIONS WHERE FULFILLED_DATE IS NULL;
+
+-- Grant admin role to a user
+UPDATE USERS SET "role" = TRUE WHERE USERNAME = 'yourusername';
+```
+
+> H2 requires quoted lowercase for the `role` column: `"role"`
+
+---
+
+## Default Seed User
+
+On first run, a default user is created:
+
+| Field | Value |
+|---|---|
+| Username | `one` |
+| Password | `one` |
+| Role | User (not admin) |
+
+To make yourself an admin, register an account then run the SQL above.
+
+---
+
+## Git Workflow
+
+See `GIT_CHEATSHEET.md` for full details.
+
+```bash
+git add .
+git commit -m "Your message"
+git push origin YourBranch
+```
